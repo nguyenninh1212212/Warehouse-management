@@ -1,0 +1,58 @@
+# --- OS Files (Rác hệ thống) ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDEs & Editors (Cấu hình riêng của trình soạn thảo) ---
+.vscode/
+.idea/
+*.iml
+*.swp
+*.sublime-project
+*.sublime-workspace
+
+# --- NodeJS (Cho dự án Chat App) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# --- Java / Maven / Gradle ---
+target/
+build/
+.gradle/
+.settings/
+.classpath
+.project
+bin/
+*.class
+*.jar
+*.war
+
+# --- Environment & Security (Cực kỳ quan trọng để bảo mật) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# --- Logs & Runtime ---
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# --- AI & Python (Nếu em làm AI Engineering) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env/
