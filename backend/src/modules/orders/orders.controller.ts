@@ -14,6 +14,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/config/guard/jwt-auth.guard';
 import { OrderEnum } from 'src/enums/order.enum';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @ApiTags('Orders (Quản lý Bán hàng)')
 @Controller('orders')
@@ -32,8 +33,8 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy danh sách tất cả đơn hàng' })
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(@Query() queryDto: PaginationQueryDto) {
+    return this.ordersService.findAll(queryDto);
   }
 
   @Patch(':id/status')

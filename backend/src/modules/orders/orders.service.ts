@@ -11,6 +11,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { ProductsService } from '../products/products.service';
 import { OrderEnum } from 'src/enums/order.enum';
 import { BuyerService } from '../buyer/buyer.service';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { paginate } from 'src/common/convert/paginator';
 
 @Injectable()
 export class OrdersService {
@@ -120,22 +122,17 @@ export class OrdersService {
     const stats = await this.orderModel.aggregate([
       {
         $group: {
-          // Nhóm theo định dạng YYYY-MM-DD
           _id: {
             $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
           },
-          // Tính tổng doanh thu trong ngày đó
           dailyRevenue: { $sum: '$totalAmount' },
-          // Đếm số đơn hàng trong ngày đó
           orderCount: { $sum: 1 },
         },
       },
       {
-        // Sắp xếp theo ngày mới nhất lên đầu (hoặc ngược lại tùy bạn)
         $sort: { _id: -1 },
       },
       {
-        // Format lại output cho đẹp
         $project: {
           _id: 0,
           date: '$_id',
@@ -178,7 +175,6 @@ export class OrdersService {
       },
     ]);
 
-    // Trả về kết quả đầu tiên của mảng hoặc object mặc định nếu chưa có đơn nào
     return (
       stats[0] || {
         date: new Date().toISOString().split('T')[0],
@@ -207,14 +203,17 @@ export class OrdersService {
     };
   }
 
-  async findAll() {
-    return await this.orderModel
-      .find()
-      .populate('userId', 'email name')
-      .populate('buyerId', 'email name')
-      .exec();
+  async findAll(queryDto: PaginationQueryDto) {
+    return paginate({
+      model: this.orderModel,
+      queryDto,
+      populates: [
+        { path: 'userId', select: 'email name' },
+        { path: 'buyerId', select: 'email name' },
+      ],
+      searchableFields: ['items.name'],
+    });
   }
-
   async findOne(id: string) {
     const order = await this.orderModel
       .findById(id)

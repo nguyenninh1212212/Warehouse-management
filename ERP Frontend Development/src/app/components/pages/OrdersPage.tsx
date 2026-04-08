@@ -1,28 +1,23 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { ShoppingCart, Plus, CheckCircle2, DollarSign } from "lucide-react";
-import { toast } from "sonner";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import { CreateOrderModal } from "../modals/CreateOrderModal";
-import { ordersApi } from "../../../lib/queries";
 import { formatCurrency } from "../../../lib/utils";
-import {
-  useOrders,
-  useStats,
-  useStatsDays,
-  useStatsToday,
-} from "../../hooks/useApi";
-import { OrderItem } from "../../../api/api";
+import { useOrders, useStatsToday } from "../../hooks/useApi";
 import { Order } from "../../../lib/types";
 import { UpdateOrderModal } from "../modals/UpdateOrderModal";
+import { Pagination } from "../common/Pagination";
 
 export function OrdersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const { data, isLoading: loadOrder, error } = useOrders();
+  const { data, isLoading: loadOrder, error } = useOrders({ page, limit: 10 });
   const { data: orderStats, isLoading } = useStatsToday();
   const revuene = orderStats?.revenue;
   const orders = orderStats?.orders;
@@ -107,7 +102,7 @@ export function OrdersPage() {
       {/* Order Creation Guide */}
       <Card>
         <CardHeader>
-          <CardTitle>Tạo đơn hàng mới</CardTitle>
+          <CardTitle>Đơn mua hàng hóa ({data?.total}) </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -115,7 +110,7 @@ export function OrdersPage() {
               {loadOrder ? (
                 <Skeleton className="h-20 w-full" />
               ) : (
-                data.map((order: Order) => (
+                data?.data.map((order: Order) => (
                   <div
                     className="border rounded-lg p-4 mb-4 shadow-md"
                     id={order?._id}
@@ -128,8 +123,8 @@ export function OrdersPage() {
                     <div className="mb-2">
                       {order.buyerId && (
                         <>
-                          <strong>Buyer:</strong> {order.buyerId.name} (
-                          {order.buyerId.email})
+                          <strong>Khách mua hàng:</strong> {order.buyerId.name}{" "}
+                          ({order.buyerId.email})
                         </>
                       )}
                     </div>
@@ -182,6 +177,12 @@ export function OrdersPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Pagination
+        page={page}
+        totalPages={orders?.totalPages || 1}
+        onPageChange={(newA) => setPage(newA)}
+      />
 
       <CreateOrderModal
         open={isModalOpen}

@@ -96,7 +96,7 @@ export function DashboardPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-slate-500">
-                    Thông báo khi hàng được bổ sung
+                    Thông báo hàng được bổ sung
                   </p>
                   <AlertTriangle className="h-4 w-4 text-orange-600" />
                 </div>

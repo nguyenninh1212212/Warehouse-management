@@ -4,6 +4,9 @@ import { Buyer, BuyerDocument } from './schemas/buyer.schema';
 import { Model } from 'mongoose';
 import { CreateBuyerDto } from './dto/create-buyer.dto';
 import { UpdateBuyerDto } from './dto/update-buyer.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { PaginatedResponseDto } from 'src/common/dto/pagination_response.dto';
+import { paginate } from 'src/common/convert/paginator';
 
 @Injectable()
 export class BuyerService {
@@ -19,8 +22,15 @@ export class BuyerService {
     });
   }
 
-  async findAll() {
-    return await this.buyerModel.find().populate('createdBy updatedBy');
+  // buyer.service.ts
+  async findAll(
+    queryDto: PaginationQueryDto,
+  ): Promise<PaginatedResponseDto<any>> {
+    return paginate({
+      model: this.buyerModel,
+      searchableFields: ['name', 'email', 'phone'],
+      queryDto,
+    });
   }
 
   async findOne(id: string) {

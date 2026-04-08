@@ -132,8 +132,10 @@ Chỉ trả về JSON, không giải thích.
   }
 
   async dashboardAI() {
-    const orders = await this.orderService.findAll();
-    const products = await this.productService.findAll();
+    const orders = (await this.orderService.findAll({ limit: 20, page: 1 }))
+      .data;
+    const products = (await this.productService.findAll({ page: 1, limit: 20 }))
+      .data;
 
     return this.aiService.analyzeBusiness({ orders, products });
   }

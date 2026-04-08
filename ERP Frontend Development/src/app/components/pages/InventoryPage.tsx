@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search,
@@ -14,23 +14,16 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Skeleton } from "../ui/Skeleton";
 import { ProductModal } from "../modals/ProductModal";
-import { productsApi } from "../../../lib/queries";
-import {
-  category,
-  Category,
-  CreateProductDto,
-  Product,
-} from "../../../lib/types";
+import { category, CreateProductDto } from "../../../lib/types";
 import { formatCurrency } from "../../../lib/utils";
-import { cn } from "../../../lib/utils";
 import { CategoryModal } from "../modals/CategoryModal";
 import {
   useCategory,
   useDeleteProduct,
   useLowStockProducts,
   useProducts,
-  useUpdateCategory,
 } from "../../hooks/useApi";
+import { Pagination } from "../common/Pagination";
 
 export function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,12 +32,19 @@ export function InventoryPage() {
   const [editingProduct, setEditingProduct] = useState<CreateProductDto | null>(
     null,
   );
-
+  const [page, setPage] = useState(1);
   const [idProduct, setIdProduct] = useState<string>("");
   const [editCate, setEditingCate] = useState<category | null>(null);
   const queryClient = useQueryClient();
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+  const {
+    data: products,
+    isLoading,
+    error,
+  } = useProducts({ page, limit: 10, search: searchQuery });
 
-  const { data: products, isLoading, error } = useProducts();
   const {
     data: lowProducts,
     isLoading: lowsLoad,
@@ -56,29 +56,7 @@ export function InventoryPage() {
     error: cateError,
   } = useCategory();
 
-  const { data: lowStockProducts } = useQuery({
-    queryKey: ["lowStock"],
-    queryFn: productsApi.getLowStock,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: productsApi.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["lowStock"] });
-      toast.success("Product deleted successfully");
-    },
-    onError: () => {
-      toast.error("Failed to delete product");
-    },
-  });
-
-  const filteredProducts = products?.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredProducts = products?.data;
 
   const handleEdit = (product: any) => {
     setEditingProduct(product);
@@ -125,7 +103,6 @@ export function InventoryPage() {
           </Button>
         </div>
       </div>
-
       {/* Low Stock Alert */}
       {lowProducts && lowProducts.length > 0 && (
         <Card className="border-orange-200 bg-orange-50">
@@ -153,7 +130,6 @@ export function InventoryPage() {
           </CardContent>
         </Card>
       )}
-
       {/* Search Bar */}
       <div className="flex flex-col gap-2">
         <Card>
@@ -189,7 +165,6 @@ export function InventoryPage() {
           </div>
         </div>
       </div>
-
       {/* Products Table */}
       <Card>
         <CardHeader>
@@ -309,7 +284,6 @@ export function InventoryPage() {
           )}
         </CardContent>
       </Card>
-
       <ProductModal
         open={isModalOpen}
         onClose={handleModalClose}
@@ -317,11 +291,15 @@ export function InventoryPage() {
         id={idProduct}
         categories={categories}
       />
-
       <CategoryModal
         open={isModalCOpen}
         onClose={handleModalCClose}
         category={editCate}
+      />
+      <Pagination
+        page={page}
+        totalPages={products?.totalPages || 1}
+        onPageChange={(newA) => setPage(newA)}
       />
     </div>
   );

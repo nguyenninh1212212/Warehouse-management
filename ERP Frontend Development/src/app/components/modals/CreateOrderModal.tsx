@@ -17,6 +17,7 @@ import { Input } from "../ui/Input";
 import { Label } from "../ui/Label";
 import { Skeleton } from "../ui/Skeleton";
 import { productsApi, ordersApi } from "../../../lib/queries";
+import { Pagination } from "../common/Pagination";
 import { Buyer, OrderItemDto } from "../../../lib/types";
 import { formatCurrency } from "../../../lib/utils";
 import {
@@ -40,14 +41,22 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
   const queryClient = useQueryClient();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [notes, setNotes] = useState("");
-
-  const { data: products, isLoading } = useProducts();
-  const { data: buyers, isLoading: buyerLoad } = useGetBuyers();
+  const [pageP, setpageP] = useState(1);
+  const [pageB, setpageB] = useState(1);
+  const limit = 10;
+  const { data: products, isLoading } = useProducts({
+    page: pageP,
+    limit,
+  });
+  const { data: buyers, isLoading: buyerLoad } = useGetBuyers({
+    page: pageB,
+    limit,
+  });
 
   const createOrderMutation = useCreateOrder();
   const [buyerId, setBuyerId] = useState<string>("");
   const handleAddProduct = (productId: string) => {
-    const product = products?.find((p) => p._id === productId);
+    const product = products?.data.find((p) => p._id === productId);
     if (!product) return;
 
     const existingItem = orderItems.find(
@@ -130,14 +139,14 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <ShoppingCart className="h-5 w-5" />
-            <span>Create New Order</span>
+            <span>Tạo đơn</span>
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Product Selection */}
           <div className="space-y-3">
-            <Label>Select Products</Label>
+            <Label>Chọn hàng</Label>
             {isLoading ? (
               <div className="space-y-2">
                 {[...Array(3)].map((_, i) => (
@@ -146,7 +155,7 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
               </div>
             ) : (
               <div className="border border-slate-200 rounded-lg p-4 max-h-64 overflow-y-auto space-y-2">
-                {products?.map((product) => (
+                {products?.data.map((product) => (
                   <div
                     key={product._id}
                     className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors"
@@ -154,8 +163,8 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
                     <div className="flex-1">
                       <p className="text-sm">{product.name}</p>
                       <p className="text-xs text-slate-500">
-                        {formatCurrency(product.price)} • {product.stock} in
-                        stock
+                        {formatCurrency(product.price)} • {product.stock} còn
+                        hàng
                       </p>
                     </div>
                     <Button
@@ -170,14 +179,19 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
                 ))}
               </div>
             )}
+            <Pagination
+              page={pageP}
+              totalPages={products?.totalPages || 1}
+              onPageChange={(a) => setpageP(a)}
+            />
           </div>
           {/* Select buyer */}
           <div className="space-y-3">
             <Label className="flex justify-between items-center">
-              <span>Select Buyer</span>
+              <span>Chọn người mua</span>
               {buyerId && (
                 <span className="text-xs text-blue-600 font-medium">
-                  Selected: {buyers?.find((b) => b._id === buyerId)?.name}
+                  Selected: {buyers?.data.find((b) => b._id === buyerId)?.name}
                 </span>
               )}
             </Label>
@@ -191,7 +205,7 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
             ) : (
               <div className="border border-slate-200 rounded-lg p-4 max-h-72 overflow-y-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {buyers?.map((buyer) => {
+                  {buyers?.data.map((buyer) => {
                     const isSelected = buyerId === buyer._id;
                     return (
                       <div
@@ -244,11 +258,15 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
               </div>
             )}
           </div>
-
+          <Pagination
+            page={pageB}
+            totalPages={buyers?.totalPages || 1}
+            onPageChange={(a) => setpageP(a)}
+          />
           {/* Order Items */}
           {orderItems.length > 0 && (
             <div className="space-y-3">
-              <Label>Order Items</Label>
+              <Label>Đơn mua</Label>
               <div className="border border-slate-200 rounded-lg p-4 space-y-3">
                 {orderItems.map((item) => (
                   <div
@@ -258,7 +276,7 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
                     <div className="flex-1">
                       <p className="text-sm">{item.productName}</p>
                       <p className="text-xs text-slate-500">
-                        {formatCurrency(item.price)} each
+                        {formatCurrency(item.price)} chiếc
                       </p>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -310,7 +328,7 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
 
                 <div className="pt-3 border-t border-slate-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Total Amount</span>
+                    <span className="text-sm">Tổng tiền</span>
                     <span className="text-lg">
                       {formatCurrency(totalAmount)}
                     </span>
@@ -323,7 +341,7 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
           {/* Actions */}
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
             <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"
@@ -331,7 +349,7 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
                 createOrderMutation.isPending || orderItems.length === 0
               }
             >
-              {createOrderMutation.isPending ? "Creating..." : "Create Order"}
+              {createOrderMutation.isPending ? "Đang tạo..." : "Tạo đơn"}
             </Button>
           </div>
         </form>

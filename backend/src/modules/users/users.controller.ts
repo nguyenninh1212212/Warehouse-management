@@ -7,6 +7,7 @@ import {
   Get,
   Post,
   Param,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -16,6 +17,7 @@ import { RolesGuard } from '../auth/roles/roles.guard';
 import { RegisterAuthDto } from '../auth/dto/register-auth.dto';
 import { RoleEnum } from '../auth/roles/role.enum';
 import { Roles } from '../auth/roles/roles.decorator';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @Controller('users')
 export class UsersController {
@@ -33,8 +35,8 @@ export class UsersController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  findAll(@Request() req) {
-    return this.usersService.findAll(req.user._id.toString());
+  findAll(@Request() req, @Query() dto: PaginationQueryDto) {
+    return this.usersService.findAll(req.user._id.toString(), dto);
   }
 
   @Post('add')

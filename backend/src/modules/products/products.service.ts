@@ -7,6 +7,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Product } from './schema/product.schema';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { paginate } from 'src/common/convert/paginator';
 
 @Injectable()
 export class ProductsService {
@@ -81,7 +83,12 @@ export class ProductsService {
     return await product.save({ session });
   }
 
-  async findAll() {
-    return await this.productModel.find().populate('category', 'name').exec();
+  async findAll(queryDto: PaginationQueryDto) {
+    return paginate({
+      model: this.productModel,
+      queryDto,
+      populates: [{ path: 'category', select: 'name' }],
+      searchableFields: ['sku', 'name', 'category.name'],
+    });
   }
 }

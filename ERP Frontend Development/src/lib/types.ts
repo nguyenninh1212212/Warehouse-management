@@ -1,4 +1,13 @@
 // Auth Types
+
+export interface PaginatedResult<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface LoginDto {
   email: string;
   password: string;
@@ -205,4 +214,10 @@ export interface Buyer {
   updatedAt: string;
   totalOrders: number;
   totalSpent: number;
+}
+
+export interface PaginatorQuery {
+  page: number;
+  limit: number;
+  search?: string;
 }

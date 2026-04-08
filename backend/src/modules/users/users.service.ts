@@ -10,16 +10,23 @@ import { User } from './schemas/user.schemas';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { PasswordHashHelper } from 'src/helper/hash/password-hash.helper';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { paginate } from 'src/common/convert/paginator';
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  findAll(userId: string) {
-    return this.userModel
-      .find({ _id: { $ne: userId } })
-      .select('-password')
-      .select('-password_key')
-      .exec();
+  async findAll(userId: string, queryDto: PaginationQueryDto) {
+    // 1. Định nghĩa bộ lọc dùng chung cho cả lệnh Đếm và lệnh Tìm
+    const filter = { _id: { $ne: userId } };
+
+    return paginate({
+      model: this.userModel,
+      queryDto,
+      filter,
+      projection: '-password -password_key',
+      searchableFields: ['name', 'email', 'username', 'role'],
+    });
   }
 
   async create(dto: RegisterAuthDto) {

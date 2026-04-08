@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -16,6 +17,7 @@ import { RolesGuard } from 'src/modules/auth/roles/roles.guard'; // Nếu bạn 
 import { Roles } from 'src/modules/auth/roles/roles.decorator';
 import { RoleEnum } from '../auth/roles/role.enum';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @ApiTags('Products (Quản lý Kho)') // Phân nhóm trong Swagger cho môn Tích hợp
 @Controller('products')
@@ -42,8 +44,8 @@ export class ProductsController {
 
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách tất cả sản phẩm' })
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query() queryDto: PaginationQueryDto) {
+    return this.productsService.findAll(queryDto);
   }
 
   @Get('low-stock')

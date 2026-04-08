@@ -8,16 +8,19 @@ import {
   CreateProductDto,
   DashboardReport,
   Me,
+  Order,
+  PaginatedResult,
+  PaginatorQuery,
   UpdateMe,
   UpdateStockDto,
 } from "../../lib/types";
 import { toast } from "sonner";
 
 // --- HOOKS CHO SẢN PHẨM ---
-export const useProducts = () => {
-  return useQuery({
-    queryKey: ["products"],
-    queryFn: apiService.getProducts,
+export const useProducts = ({ page, limit, search }: PaginatorQuery) => {
+  return useQuery<PaginatedResult<Product>>({
+    queryKey: ["products", page, search],
+    queryFn: () => apiService.getProducts({ page, limit, search }),
   });
 };
 
@@ -104,10 +107,10 @@ export const useGetMe = () => {
     retry: false,
   });
 };
-export const useGetUser = () => {
-  return useQuery<Me[]>({
-    queryKey: ["users"],
-    queryFn: apiService.getUsers,
+export const useGetUser = ({ page, limit, search }: PaginatorQuery) => {
+  return useQuery<PaginatedResult<Me>>({
+    queryKey: ["users", search, page],
+    queryFn: () => apiService.getUsers({ page, limit, search }),
     retry: false,
   });
 };
@@ -182,10 +185,10 @@ export const useDeleteProduct = () => {
 };
 
 // --- 3. ORDER HOOKS ---
-export const useOrders = () => {
-  return useQuery({
-    queryKey: ["orders"],
-    queryFn: apiService.getOrders,
+export const useOrders = ({ page, limit }: PaginatorQuery) => {
+  return useQuery<PaginatedResult<Order>>({
+    queryKey: ["orders", page],
+    queryFn: () => apiService.getOrders({ page, limit }),
   });
 };
 
@@ -277,10 +280,10 @@ export const useDeleteCategory = () => {
   });
 };
 
-export const useGetBuyers = () => {
-  return useQuery<Buyer[]>({
-    queryKey: ["buyers"],
-    queryFn: apiService.getBuyerAll,
+export const useGetBuyers = ({ page, limit, search }: PaginatorQuery) => {
+  return useQuery<PaginatedResult<Buyer>>({
+    queryKey: ["buyers", page, search],
+    queryFn: () => apiService.getBuyerAll({ page, limit, search }),
   });
 };
 

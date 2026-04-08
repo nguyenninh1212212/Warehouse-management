@@ -4,6 +4,7 @@ import {
   Category,
   CreateBuyerDto,
   CreateProductDto,
+  PaginatorQuery,
   UpdateBuyerDto,
   UpdateMe,
   UpdateProductDto,
@@ -18,13 +19,30 @@ const api = axios.create({
 });
 
 // Tự động gắn Token vào mỗi request nếu có trong localStorage
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("access_token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
+);
 
 // --- 2. TYPES (Dựa theo OpenAPI JSON của em) ---
 export interface UpdateUserDto {
@@ -82,11 +100,24 @@ export const apiService = {
   logout: () => api.post("/auth/logout"),
   register: (data: any) => api.post("/users/add", data).then((res) => res.data),
   getMe: () => api.get("/auth/me").then((res) => res.data),
-  getUsers: () => api.get("/users").then((res) => res.data),
+  getUsers: ({ page, limit, search }: PaginatorQuery) =>
+    api
+      .get("/users", { params: { page, limit, search } })
+      .then((res) => res.data),
   updateMe: (data: UpdateMe, id: string) =>
     api.patch(`/users/profile/${id}`, data).then((res) => res.data),
   // Products
-  getProducts: () => api.get<Product[]>("/products").then((res) => res.data),
+  getProducts: async ({ page, limit, search }: PaginatorQuery) => {
+    const res = await api.get("/products", {
+      params: {
+        page,
+        limit,
+        search,
+      },
+    });
+    return res.data;
+  },
+
   getLowStock: () =>
     api.get<Product[]>("/products/low-stock").then((res) => res.data),
   createProduct: (data: CreateProductDto) =>
@@ -109,7 +140,16 @@ export const apiService = {
   deleteCategory: (id: string) =>
     api.delete(`/categories/${id}`).then((res) => res.data),
   // Orders
-  getOrders: () => api.get("/orders").then((res) => res.data),
+  getOrders: async ({ page, limit }: PaginatorQuery) => {
+    const res = await api.get("/orders", {
+      params: {
+        page,
+        limit,
+      },
+    });
+    return res?.data;
+  },
+
   createOrder: (data: CreateOrderDto) =>
     api.post("/orders", data).then((res) => res.data),
 
@@ -129,8 +169,14 @@ export const apiService = {
   getStatsDays: () => api.get(`/analytics/stats/days`).then((res) => res.data),
 
   //buyer
-  getBuyerAll: async () => {
-    const res = await api.get("/buyer");
+  getBuyerAll: async ({ page, limit, search }: PaginatorQuery) => {
+    const res = await api.get("/buyer", {
+      params: {
+        page,
+        limit,
+        search,
+      },
+    });
     return res.data;
   },
 

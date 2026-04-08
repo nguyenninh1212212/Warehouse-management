@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { BuyerService } from './buyer.service';
 import { CreateBuyerDto } from './dto/create-buyer.dto';
@@ -16,24 +17,26 @@ import { JwtAuthGuard } from 'src/config/guard/jwt-auth.guard';
 import { Roles } from '../auth/roles/roles.decorator';
 import { RoleEnum } from '../auth/roles/role.enum';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { RolesGuard } from '../auth/roles/roles.guard';
 
-@UseGuards(JwtAuthGuard)
 @ApiTags('Quản lý khách hàng')
 @Controller('buyer')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class BuyerController {
   constructor(private readonly buyerService: BuyerService) {}
 
   @Post()
   @Roles(RoleEnum.ADMIN)
-  @ApiBearerAuth()
   create(@Body() createBuyerDto: CreateBuyerDto, @Req() req: any) {
     return this.buyerService.create(createBuyerDto, req.user.id);
   }
 
   @Get()
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
-  findAll() {
-    return this.buyerService.findAll();
+  @ApiBearerAuth()
+  findAll(@Query() queryDto: PaginationQueryDto) {
+    return this.buyerService.findAll(queryDto);
   }
   @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id')
