@@ -17,7 +17,7 @@ Hệ thống quản lý kho hàng thông minh tích hợp trí tuệ nhân tạo
 * **Performance:** Sử dụng kiến trúc **Microservices/Modular** giúp hệ thống xử lý mượt mà ngay cả khi số lượng mã hàng (SKU) tăng lớn.
 
 ### 🛠 Cấu trúc dự án (Architecture)
-
+```text
 src/
 ├── modules/
 │   ├── inventory/      # Quản lý hàng tồn kho
@@ -26,7 +26,7 @@ src/
 │   └── auth/           # Phân quyền & Bảo mật
 ├── shared/             # Cấu hình MongoDB, Logger, Constants
 └── main.ts             # Điểm khởi đầu của ứng dụng
-
+```
 Việc kết hợp **NestJS** và **MongoDB** mang lại tốc độ phát triển cực nhanh cho các hệ thống ERP/Warehouse. Đặc biệt, với sự hỗ trợ của **Gemini**, hệ thống không còn là một công cụ lưu trữ tĩnh mà trở thành một "trợ lý" thực sự, giúp giảm thiểu sai sót do con người và tối ưu hóa diện tích kho bãi.
 
 **Frontend Application**
