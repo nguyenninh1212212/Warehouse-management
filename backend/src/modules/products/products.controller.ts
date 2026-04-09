@@ -18,7 +18,6 @@ import { Roles } from 'src/modules/auth/roles/roles.decorator';
 import { RoleEnum } from '../auth/roles/role.enum';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
-
 @ApiTags('Products (Quản lý Kho)') // Phân nhóm trong Swagger cho môn Tích hợp
 @Controller('products')
 export class ProductsController {

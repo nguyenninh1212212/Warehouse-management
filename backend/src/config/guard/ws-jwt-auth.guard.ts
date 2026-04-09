@@ -7,7 +7,6 @@ export class WsJwtAuthGuard extends AuthGuard('jwt') {
     const client = context.switchToWs().getClient();
     const token = client.handshake.auth?.token;
 
-    // Tạo request ảo để Passport đọc token
     return {
       headers: {
         authorization: token,
@@ -15,7 +14,6 @@ export class WsJwtAuthGuard extends AuthGuard('jwt') {
     };
   }
 
-  // --- THÊM ĐOẠN NÀY VÀO ---
   handleRequest(err, user, info, context: ExecutionContext) {
     if (err || !user) {
       return null;

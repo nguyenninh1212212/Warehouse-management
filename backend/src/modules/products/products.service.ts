@@ -9,11 +9,13 @@ import { Product } from './schema/product.schema';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { paginate } from 'src/common/convert/paginator';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<Product>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async update(updateProductDto: UpdateProductDto, id: string) {
@@ -80,6 +82,16 @@ export class ProductsService {
     }
 
     product.stock = newStock;
+
+    if (product.stock <= product.lowStockThreshold) {
+      this.eventEmitter.emit('product.low_stock', {
+        name: product.name,
+        stock: product.stock,
+        sku: product.sku,
+        threshold: product.lowStockThreshold,
+      });
+      console.log(`⚠️ Đã phát sự kiện low_stock cho sản phẩm: ${product.name}`);
+    }
     return await product.save({ session });
   }
 
